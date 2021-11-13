@@ -187,12 +187,12 @@ begin
       Connection := DM.fdConn;
       SQL.Clear;
       SQL.Text := Sql_Excluir_Itens;
-      ParamByName('PI_PEDIDO').Value := PE_PEDIDO;
+      ParamByName('PI_PEDIDO').Value := cPedido;
       ExecSQL;
 
       SQL.Clear;
       SQL.Text := Sql_Excluir_Cab;
-      ParamByName('PE_PEDIDO').Value := PE_PEDIDO;
+      ParamByName('PE_PEDIDO').Value := cPedido;
       ExecSQL;
 
       Result := False;

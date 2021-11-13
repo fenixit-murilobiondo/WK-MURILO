@@ -81,6 +81,7 @@ type
     procedure btnBuscaPedidoClick(Sender: TObject);
     procedure edtPedidoExit(Sender: TObject);
     procedure btnExcluirClick(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   private
     { Private declarations }
   public
@@ -338,6 +339,9 @@ end;
 
 procedure TfrmPedido.btnCancelarClick(Sender: TObject);
 begin
+  if Metodo = 'I' then
+    oPedido.Excluir(edtPedido.Text);
+
   Metodo := '';
   UpdateBotoes;
   LimparCampos;
@@ -378,6 +382,12 @@ begin
     Exit;
   end;
 
+  if cdsItens.IsEmpty then
+  begin
+    ShowMessage('Itens do Pedido obrigatório !');
+    Exit;
+  end;
+
 //  if Metodo = 'I' then
 //    Inserir
 //  else if Metodo = 'A' then
@@ -411,6 +421,12 @@ begin
   if Assigned(oCliente) then FreeAndNil(oCliente);
   if Assigned(oPedido) then FreeAndNil(oPedido);
   if Assigned(oPedidoItem) then FreeAndNil(oPedidoItem);
+end;
+
+procedure TfrmPedido.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+  if Metodo = 'I' then
+    oPedido.Excluir(edtPedido.Text);
 end;
 
 procedure TfrmPedido.FormCreate(Sender: TObject);

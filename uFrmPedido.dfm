@@ -14,6 +14,7 @@ object frmPedido: TfrmPedido
   OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnKeyPress = FormKeyPress
   OnResize = FormResize
@@ -435,6 +436,7 @@ object frmPedido: TfrmPedido
       FieldName = 'PI_ID'
       Origin = 'PI_ID'
       ProviderFlags = [pfInWhere, pfInKey]
+      ReadOnly = True
     end
     object qItensPI_PEDIDO: TStringField
       FieldName = 'PI_PEDIDO'
