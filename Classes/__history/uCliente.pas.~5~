@@ -1,0 +1,81 @@
+unit uCliente;
+
+interface
+
+uses
+  System.SysUtils, System.Classes, INIFiles, Forms, FireDAC.Stan.Intf,
+  FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
+  FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys,
+  FireDAC.Phys.MySQLDef, FireDAC.VCLUI.Wait, FireDAC.Comp.UI,
+  FireDAC.Phys.MySQL, Data.DB, FireDAC.Comp.Client, Dialogs;
+
+type
+TCliente = class
+ private
+   F_CLI_CODIGO: String;
+   F_CLI_NOME: String;
+   F_CLI_CIDADE: String;
+   F_CLI_UF: String;
+
+ public
+   function Pesquisar(Codigo: String; Empresa: String): TCliente;
+
+ published
+   property CLI_CODIGO: String read F_CLI_CODIGO write F_CLI_CODIGO;
+   property CLI_NOME: String read F_CLI_NOME write F_CLI_NOME;
+   property CLI_CIDADE: String read F_CLI_CIDADE write F_CLI_CIDADE;
+   property CLI_UF: String read F_CLI_UF write F_CLI_UF;
+
+end;
+
+implementation
+
+{ TCliente }
+
+function TCliente.Pesquisar(Codigo: String; Empresa: String): TCliente;
+const
+ Sql_Pesquisa = 'SELECT * FROM CLIENTE '+
+' WHERE CLI_CODIGO = :CLI_CODIGO';
+var
+  fdQry: TFDQuery;
+  Cliente: TCliente;
+begin
+  try
+    fdQry := TFDQuery.Create(nil);
+    with fdQry do
+    begin
+      Connection := DM.fdConn;
+      SQL.Clear;
+      SQL.Text := Sql_Pesquisa;
+      ParamByName('D05_CODIGO').Value := Codigo;
+
+      if Empresa <> '' then
+        SQL.Text := SQL.Text + ' AND D05_EMPRESA = ' + QuotedStr(Empresa);
+
+      try
+        Open;
+        while not EOF do
+         begin
+           D05_ID := FieldByName('D05_ID').Value;
+           D05_CODIGO := FieldByName('D05_CODIGO').Value;
+           D05_EMPRESA := FieldByName('D05_EMPRESA').Value;
+           D05_DESCRICAO := FieldByName('D05_DESCRICAO').Value;
+           D05_COR := FieldByName('D05_COR').Value;
+           D05_LOG_INC := FieldByName('D05_LOG_INC').Value;
+           D05_LOG_ALT := FieldByName('D05_LOG_ALT').Value;
+           D05_LOG_EXC := FieldByName('D05_LOG_EXC').Value;
+           D05_EXCLUIDO := FieldByName('D05_EXCLUIDO').Value;
+           Next;
+         end;
+         Close;
+      except
+      end;
+    end;
+
+  finally
+    if Assigned(zQuery) then
+      FreeAndNil(zQuery);
+  end;
+end;
+
+end.

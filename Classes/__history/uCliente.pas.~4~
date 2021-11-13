@@ -1,0 +1,251 @@
+unit uCliente;
+
+interface
+
+uses
+  System.SysUtils, System.Classes, INIFiles, Forms, FireDAC.Stan.Intf,
+  FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
+  FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys,
+  FireDAC.Phys.MySQLDef, FireDAC.VCLUI.Wait, FireDAC.Comp.UI,
+  FireDAC.Phys.MySQL, Data.DB, FireDAC.Comp.Client, Dialogs;
+
+type
+TCliente = class
+ private
+   F_CLI_CODIGO: String;
+   F_CLI_NOME: String;
+   F_CLI_CIDADE: String;
+   F_CLI_UF: String;
+
+ public
+   function Pesquisar(Codigo: String; Empresa: String): TCliente;
+
+ published
+   property CLI_CODIGO: String read F_CLI_CODIGO write F_CLI_CODIGO;
+   property CLI_NOME: String read F_CLI_NOME write F_CLI_NOME;
+   property CLI_CIDADE: String read F_CLI_CIDADE write F_CLI_CIDADE;
+   property CLI_UF: String read F_CLI_UF write F_CLI_UF;
+
+end;
+
+implementation
+
+{ TStatusPedidoVenda }
+
+function TStatusPedidoVenda.Inserir: Boolean;
+const
+ Sql_Inserir = 'INSERT INTO D05 VALUES (' +
+':D05_EMPRESA,' +
+':D05_CODIGO,' +
+':D05_DESCRICAO,' +
+':D05_COR,' +
+':D05_LOG_INC,' +
+':D05_LOG_ALT,' +
+':D05_LOG_EXC,' +
+':D05_EXCLUIDO' +
+')';
+var
+  zQuery: TZQuery;
+begin
+  try
+    Result := True;
+    zQuery := TZQuery.Create(nil);
+    with zQuery do
+    begin
+      Connection := DM.zConn;
+      SQL.Clear;
+      SQL.Text := Sql_Inserir;
+
+      ParamByName('D05_CODIGO').Value := F_D05_CODIGO;
+      ParamByName('D05_EMPRESA').Value := F_D05_EMPRESA;
+      ParamByName('D05_DESCRICAO').Value := F_D05_DESCRICAO;
+      ParamByName('D05_COR').Value := F_D05_COR;
+      ParamByName('D05_LOG_INC').Value := F_D05_LOG_INC;
+      ParamByName('D05_LOG_ALT').Value := F_D05_LOG_ALT;
+      ParamByName('D05_LOG_EXC').Value := F_D05_LOG_EXC;
+      ParamByName('D05_EXCLUIDO').Value := F_D05_EXCLUIDO;
+
+      try
+        DM.zConn.StartTransaction;
+        ExecSQL;
+        DM.zConn.Commit;
+      except
+        DM.zConn.Rollback;
+        Result := False;
+      end;
+    end;
+
+  finally
+    if Assigned(zQuery) then
+      FreeAndNil(zQuery);
+  end;
+end;
+
+function TStatusPedidoVenda.Alterar: Boolean;
+const
+ Sql_Alterar = 'UPDATE D05 SET ' +
+'D05_CODIGO = :D05_CODIGO,' +
+'D05_EMPRESA = :D05_EMPRESA,' +
+'D05_DESCRICAO = :D05_DESCRICAO,' +
+'D05_COR = :D05_COR,' +
+'D05_LOG_ALT = :D05_LOG_ALT,' +
+'D05_LOG_EXC = :D05_LOG_EXC,' +
+'D05_EXCLUIDO = :D05_EXCLUIDO ' +
+'WHERE D05_ID = :D05_ID';
+var
+  zQuery: TZQuery;
+begin
+  try
+    Result := True;
+    zQuery := TZQuery.Create(nil);
+    with zQuery do
+    begin
+      Connection := DM.zConn;
+      SQL.Clear;
+      SQL.Text := Sql_Alterar;
+
+      ParamByName('D05_ID').Value := D05_ID;
+      ParamByName('D05_CODIGO').Value := D05_CODIGO;
+      ParamByName('D05_EMPRESA').Value := D05_EMPRESA;
+      ParamByName('D05_DESCRICAO').Value := D05_DESCRICAO;
+      ParamByName('D05_COR').Value := D05_COR;
+      ParamByName('D05_LOG_ALT').Value := D05_LOG_ALT;
+      ParamByName('D05_LOG_EXC').Value := D05_LOG_EXC;
+      ParamByName('D05_EXCLUIDO').Value := D05_EXCLUIDO;
+
+      try
+        DM.zConn.StartTransaction;
+        ExecSQL;
+        DM.zConn.Commit;
+      except
+        DM.zConn.Rollback;
+        Result := False;
+      end;
+    end;
+
+  finally
+    if Assigned(zQuery) then
+      FreeAndNil(zQuery);
+  end;
+end;
+
+function TStatusPedidoVenda.Excluir: Boolean;
+const
+ Sql_Excluir = 'UPDATE D05 SET D05_EXCLUIDO = :D05_EXCLUIDO, ' +
+ 'D05_LOG_EXC = :D05_LOG_EXC ' +
+ 'WHERE D05_ID = :D05_ID';
+var
+  zQuery: TZQuery;
+begin
+  try
+    Result := True;
+    zQuery := TZQuery.Create(nil);
+    with zQuery do
+    begin
+      Connection := DM.zConn;
+      SQL.Clear;
+      SQL.Text := Sql_Excluir;
+
+      ParamByName('D05_ID').Value := F_D05_ID;
+      ParamByName('D05_LOG_EXC').Value := F_D05_LOG_EXC;
+      ParamByName('D05_EXCLUIDO').Value := 'S';
+
+      try
+        DM.zConn.StartTransaction;
+        ExecSQL;
+        DM.zConn.Commit;
+      except
+        DM.zConn.Rollback;
+        Result := False;
+      end;
+    end;
+
+  finally
+    if Assigned(zQuery) then
+      FreeAndNil(zQuery);
+  end;
+end;
+
+function TStatusPedidoVenda.ProximoCodigo(Empresa: String): String;
+const
+ Sql_Proximo = 'SELECT MAX(D05_CODIGO) AS REC FROM D05 '+
+'WHERE D05_EXCLUIDO = ''N'' ';
+var
+  zQuery: TZQuery;
+begin
+  try
+    zQuery := TZQuery.Create(nil);
+    with zQuery do
+    begin
+      Connection := DM.zConn;
+      SQL.Clear;
+      SQL.Text := Sql_Proximo;
+
+      if Empresa <> '' then
+        SQL.Text := SQl.Text + ' AND D05_EMPRESA = ' + QuotedStr(Empresa);
+
+      try
+        Open;
+        if (FieldByName('REC').IsNull) or (FieldByName('REC').Value = '') then
+          Result := FormatFloat('000', 1)
+        else
+          Result := FormatFloat('000', FieldByName('REC').Value + 1);
+      except
+        Raise;
+      end;
+    end;
+
+  finally
+    if Assigned(zQuery) then
+      FreeAndNil(zQuery);
+  end;
+end;
+
+function TStatusPedidoVenda.Pesquisar(Codigo: String; Empresa: String): TStatusPedidoVenda;
+const
+ Sql_Pesquisa = 'SELECT * FROM D05 '+
+'WHERE D05_EXCLUIDO = ''N'' '+
+'AND D05_CODIGO = :D05_CODIGO';
+var
+  zQuery: TZQuery;
+  Entidades: TStatusPedidoVenda;
+begin
+  try
+    zQuery := TZQuery.Create(nil);
+    with zQuery do
+    begin
+      Connection := DM.zConn;
+      SQL.Clear;
+      SQL.Text := Sql_Pesquisa;
+      ParamByName('D05_CODIGO').Value := Codigo;
+
+      if Empresa <> '' then
+        SQL.Text := SQL.Text + ' AND D05_EMPRESA = ' + QuotedStr(Empresa);
+
+      try
+        Open;
+        while not EOF do
+         begin
+           D05_ID := FieldByName('D05_ID').Value;
+           D05_CODIGO := FieldByName('D05_CODIGO').Value;
+           D05_EMPRESA := FieldByName('D05_EMPRESA').Value;
+           D05_DESCRICAO := FieldByName('D05_DESCRICAO').Value;
+           D05_COR := FieldByName('D05_COR').Value;
+           D05_LOG_INC := FieldByName('D05_LOG_INC').Value;
+           D05_LOG_ALT := FieldByName('D05_LOG_ALT').Value;
+           D05_LOG_EXC := FieldByName('D05_LOG_EXC').Value;
+           D05_EXCLUIDO := FieldByName('D05_EXCLUIDO').Value;
+           Next;
+         end;
+         Close;
+      except
+      end;
+    end;
+
+  finally
+    if Assigned(zQuery) then
+      FreeAndNil(zQuery);
+  end;
+end;
+
+end.
